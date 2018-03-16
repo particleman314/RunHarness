@@ -1,0 +1,2 @@
+suitedir: ${__HARNESS_TOPLEVEL}/test/input_functions
+suiteid: CANOPUS Input Functions

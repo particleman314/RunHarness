@@ -1,0 +1,2 @@
+suitedir: ${__HARNESS_TOPLEVEL}/test/output_functions
+suiteid: CANOPUS Output Functions

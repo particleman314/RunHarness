@@ -1,0 +1,2 @@
+suitedir: ${__HARNESS_TOPLEVEL}/test/base_functions
+suiteid: CANOPUS Base Functions

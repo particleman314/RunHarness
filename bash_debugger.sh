@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+SLCF_BASH_DEBUGGER_ROOT="${1:-/usr/local/Cellar/bash/4.4.18/share}"
+if [ ! -d "${SLCF_BASH_DEBUGGING_ROOT}" ]
+then
+  unset SLCF_BASH_DEBUGGER_ROOT
+  printf "%s\n" "Unable to find the BashDB.  Disabling this feature"
+  return
+fi
+
+SLCF_BASH_DEBUG=1
+SLCF_BASH_DEBUGGER_PROGRAM="${BASH_DEBUGGER_PROGRAM:-${SLCF_BASH_DEBUGGER_ROOT}/bashdb/bashdb-trace}"
+SLCF_BASH_DEBUGGER_OPTIONS="${BASH_DEBUGGER_OPTIONS:-"-L ${SLCF_BASH_DEBUGGER_ROOT}/bashdb"}"
+SLCF_BASH_DEBUGGER_SETTINGS="${BASH_DEBUGGER_SETTINGS:-"_Dbg_linetrace_on; _Dbg_debugger"}"
+
+export SLCF_BASH_DEBUG
+export SLCF_BASH_DEBUGGER_ROOT
+export SLCF_BASH_DEBUGGER_PROGRAM
+export SLCF_BASH_DEBUGGER_OPTIONS
+export SLCF_BASH_DEBUGGER_SETTINGS

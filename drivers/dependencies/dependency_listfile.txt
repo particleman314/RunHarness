@@ -1,0 +1,6 @@
+assertions:assert.sh --> blah.sh
+assertions:assert_empty.sh
+assertions:assert_success.sh --> assert_equals.sh
+assertions:assert_success.sh --> assert_not_equals.sh
+assertions:assert_failure.sh --> assert_equals.sh,assert_not_equals.sh
+

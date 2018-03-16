@@ -1,0 +1,2 @@
+suitedir: ${__HARNESS_TOPLEVEL}/test/extended_functions
+suiteid: CANOPUS Extended Functions
