@@ -1443,7 +1443,7 @@ setup()
   ###
   ### Gain access to all help screens for the Canopus Test Harness system
   ###
-  . "${__harness_toplevel}/help/.load_all_usage_screens.sh"
+  . "${__harness_toplevel}/help/load_all_usage_screens.sh"
   
   DEFAULT_CANOPUS_TEST_FILE_EXCLUDE_PATTERNS='^test_ ^__setup'
   DEFAULT_CANOPUS_TEST_DIR_EXCLUDE_PATTERNS='lib'
