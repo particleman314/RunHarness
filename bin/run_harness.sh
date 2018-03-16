@@ -293,7 +293,7 @@ __setup_basic_functional_paths()
   ###
   ### Preparing remaining paths for rest of installation to be complete system
   ###
-  __setup_paths "${__toplevel}" "$3" "${__harness_toplevel}/lib/.run_harness_program.sh"
+  __setup_paths "${__toplevel}" "$3" "${__harness_toplevel}/lib/run_harness_program.sh"
   return $?
 }
 
@@ -817,11 +817,11 @@ run_harness()
   ###
   ### Load necessary work horse functionality for this executable
   ###
-  . "${__HARNESS_TOPLEVEL}/lib/.run_harness.sh"
+  . "${__HARNESS_TOPLEVEL}/lib/run_harness_support.sh"
   RC=$?
   if [ "${RC}" -ne "${PASS}" ]
   then
-    __set_internal_value 'PREMATURE_EXIT_MSG' "Unable to properly source testing component infrastructure << .run_harness.sh >>.  Exiting!$( __extract_value 'DISPLAY_NEWLINE_MARKER' )"
+    __set_internal_value 'PREMATURE_EXIT_MSG' "Unable to properly source testing component infrastructure << run_harness_support.sh >>.  Exiting!$( __extract_value 'DISPLAY_NEWLINE_MARKER' )"
     handle_premature_exit "${optfile}"
     return "$( __extract_value 'EXIT' )"
   fi
@@ -1437,7 +1437,7 @@ setup()
   ###
   typeset cleaned_options=$( cleanup_options "${__harness_toplevel}/.error_warn_${program_start_time}.log" $@ )
 
-  . "${__harness_toplevel}/lib/.run_harness.sh"
+  . "${__harness_toplevel}/lib/run_harness_support.sh"
   [ $? -ne "${PASS}" ] && return "${FAIL}"
   
   ###

@@ -1530,7 +1530,7 @@ run_suite()
   print_btf_detail --msg "Subject of Testing : $( __convert_parameter --param "${subject}" )" --prefix "$( __extract_value 'PREFIX_SELECT' )"
 
   record_step ${HOTSPOT_FLAGS} --header "launch ${class}" --start
-  . "${__HARNESS_TOPLEVEL}/lib/.launch.sh" "${class}"
+  . "${__HARNESS_TOPLEVEL}/lib/launch.sh" "${class}"
   RC=$?
   record_step ${HOTSPOT_FLAGS} --header "launch ${class}" --stop
   
