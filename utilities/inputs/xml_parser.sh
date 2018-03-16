@@ -738,7 +738,7 @@ then
   __RC=$?
   if [ "${__RC}" -eq 0 ]
   then
-    . "${__HARNESS_TOPLEVEL}/utilities/inputs/.basic_parser_functions.sh"
+    . "${__HARNESS_TOPLEVEL}/utilities/inputs/basic_parser_functions.sh"
     __RC=$?
     [ "${__RC}" -ne "${PASS}" ] && return "${__RC}"
     

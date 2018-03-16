@@ -541,7 +541,7 @@ __handle_txt_test_input()
 }
 
 # =====================================================================
-. "${__HARNESS_TOPLEVEL}/utilities/inputs/.basic_parser_functions.sh"
+. "${__HARNESS_TOPLEVEL}/utilities/inputs/basic_parser_functions.sh"
 [ $? -ne 0 ] && return 1
 
 . "${SLCF_SHELL_TOP}/utilities/common/program_utilities.sh"

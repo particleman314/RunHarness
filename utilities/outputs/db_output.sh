@@ -29,7 +29,7 @@ fi
 
 [ -z "${SLCF_SHELL_TOP}" ] || [ -z "${PASS}" ] && return 1
 
-. "${__HARNESS_TOPLEVEL}/utilities/outputs/.output_support.sh"
+. "${__HARNESS_TOPLEVEL}/utilities/outputs/output_support.sh"
 [ $? -ne 0 ] && return 1
 
 . "${SLCF_SHELL_TOP}/lib/filedb.sh"

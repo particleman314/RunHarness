@@ -47,7 +47,7 @@
 
 . "${SLCF_SHELL_TOP}/utilities/common/program_utilities.sh"
 . "${__HARNESS_TOPLEVEL}/utilities/test/test_framework.sh"
-. "${__HARNESS_TOPLEVEL}/utilities/inputs/.basic_parser_functions.sh"
+. "${__HARNESS_TOPLEVEL}/utilities/inputs/basic_parser_functions.sh"
 
 . "${SLCF_SHELL_TOP}/lib/base_setup.sh"
 [ $? -ne 0 ] && return 1
