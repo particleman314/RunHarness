@@ -1456,7 +1456,7 @@ setup()
   ###
   ### Read in system specific file data to import into environment
   ###
-  __set_internal_value 'SYSTEM_DATA_FILE' "${__harness_toplevel}/bin/data/.harness_system_data"
+  __set_internal_value 'SYSTEM_DATA_FILE' "${__harness_toplevel}/bin/data/harness_system_data"
   __set_internal_value 'SETTINGS' "$( __handle_option_management ${cleaned_options} )"
 
   ###

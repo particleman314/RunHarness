@@ -1,4 +1,4 @@
-@include ${SLCF_SHELL_TOP}/data/.base_system_data
+@include ${SLCF_SHELL_TOP}/data/base_system_data
 #
 CURRENT_USER='SynopsysAutomata'
 #
