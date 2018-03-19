@@ -1,69 +1,44 @@
 #!/usr/bin/env bash
+###############################################################################
+# Copyright (c) 2018.  All rights reserved. 
+# Mike Klusman IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A 
+# COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS 
+# ONE POSSIBLE IMPLEMENTATION OF THIS FEATURE, APPLICATION OR 
+# STANDARD, Mike Klusman IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION 
+# IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE 
+# FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION. 
+# Mike Klusman EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO 
+# THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO 
+# ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE 
+# FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY 
+# AND FITNESS FOR A PARTICULAR PURPOSE. 
+###############################################################################
 
 XML_GIT_REPO='git://xmlstar.git.sourceforge.net/gitroot/xmlstar/xmlstar'
-
-DOWNLOAD_FILE='download.txt'
-CONFIGURE_FILE='configure.txt'
-BUILD_FILE='build.txt'
+XML_SOURCEFORGE_REPO='git://git.code.sf.net/p/xmlstar/code'
 
 download_xmlstarlet()
 {
-  typeset tmpbuild="$1"
-  typeset RC=1
-
-  \mkdir -p "${tmpbuild}"
-  RC=$?
+  __download_git "$1" 'xml' "${XML_GIT_REPO}"
+  typeset RC=$?
   if [ "${RC}" -ne 0 ]
   then
-    cd "${current_dir}" > /dev/null 2>&1
-    return "${RC}"
-  fi
-
-  typeset needs_git_update=0
-
-  cd "${tmpbuild}" >/dev/null 2>&1
-
-  if [ ! -d "${tmpbuild}/xmlstar" ]
-  then
-    print_btf_detail --msg "Downloading 'xml' src code" --prefix "${__INFO_PREFIX}" --tab-level 2 >&2
-    \date > "${DOWNLOAD_FILE}"
-    \git clone --verbose "${XML_GIT_REPO}" >> "${DOWNLOAD_FILE}" 2>&1
+    __download_git "$1" 'xml' "${XML_SOURCEFORGE_REPO}"
     RC=$?
-    if [ "${RC}" -ne 0 ]
-    then
-      cd "${current_dir}" > /dev/null 2>&1
-      return "${RC}"
-    fi
-  else
-    needs_git_update=1
   fi
-
-  cd xmlstar >/dev/null 2>&1
-  if [ "${needs_git_update}" -eq 1 ]
-  then
-    print_btf_detail --msg "Updating 'xml' src code" --prefix "${__INFO_PREFIX}" --tab-level 2 >&2
-    \date > "../${DOWNLOAD_FILE}"
-    \git pull >> "../${DOWNLOAD_FILE}" 2>&1
-    RC=$?
-    if [ "${RC}" -ne 0 ]
-    then
-      cd "${current_dir}" > /dev/null 2>&1
-      return "${RC}"
-    fi
- fi
-  cd - > /dev/null 2>&1
   return "${RC}"
 }
 
 configure_xmlstarlet()
 {
-  print_btf_detail --msg "Configuring 'xml' build system" --prefix "${__INFO_PREFIX}" --tab-level 2 >&2
+  print_btf_detail --msg "Configuring 'xml' build system" --prefix "${__INFO_PREFIX}" --tab-level 2 --use-color '\033[1;33m' >&2
   typeset tmpbuild="$1"
   typeset RC=1
 
   cd xmlstar >/dev/null 2>&1
 
   \date > "../${CONFIGURE_FILE}"
+  __record_command_2_file "../${CONFIGURE_FILE}" "autoreconf -sif"
   \autoreconf -sif >> "../${CONFIGURE_FILE}" 2>&1 >> "../${CONFIGURE_FILE}" 2>&1
   RC=$?
   if [ "${RC}" -ne 0 ]
@@ -72,14 +47,7 @@ configure_xmlstarlet()
     return "${RC}"
   fi
 
-  ./configure >> "../${CONFIGURE_FILE}" 2>&1
-  RC=$?
-  if [ "${RC}" -ne 0 ]
-  then
-    cd "${current_dir}" > /dev/null 2>&1
-    return "${RC}"
-  fi
-
+  __record_command_2_file "../${CONFIGURE_FILE}" './configure'
   ./configure >> "../${CONFIGURE_FILE}" 2>&1
   RC=$?
   if [ "${RC}" -ne 0 ]
@@ -94,22 +62,9 @@ configure_xmlstarlet()
 
 make_xmlstarlet()
 {
-  print_btf_detail --msg "Compiling/Linking 'xml' " --prefix "${__INFO_PREFIX}" --tab-level 2 >&2
-  typeset tmpbuild="$1"
-  typeset RC=1
-
-  cd xmlstar >/dev/null 2>&1
-  \make > "../${BUILD_FILE}" 2>&1
-  RC=$?
-  printf "%s\n" "Error condition at end of make = ${RC}" >> "../${BUILD_FILE}"
-
-  if [ "${RC}" -ne 0 ]
-  then
-    cd "${current_dir}" > /dev/null 2>&1
-    return "${RC}"
-  fi
-  cd - >/dev/null 2>&1
-  return 0
+  __make_with_args "$1/xmlstar" "xml" 1
+  typeset RC=$?
+  return "${RC}"
 }
 
 build_xmlstarlet()
@@ -122,7 +77,7 @@ build_xmlstarlet()
   RC=$?
   if [ "${RC}" -ne 0 ]
   then
-    print_btf_detail --msg "Building 'xml' application failed --> (see ${tmpbuild} for details)" --prefix "${__WARN_PREFIX}" --tab-level 1 >&2
+    print_btf_detail --msg "Building 'xml' application failed --> (see ${tmpbuild} for details)" --prefix "${__WARN_PREFIX}" --tab-level 1 --use-color '\033[1;31m' >&2
     return "${RC}"
   fi
 
@@ -130,7 +85,7 @@ build_xmlstarlet()
   RC=$?
   if [ "${RC}" -ne 0 ]
   then
-    print_btf_detail --msg "Building 'xml' application failed --> (see ${tmpbuild} for details)" --prefix "${__WARN_PREFIX}" --tab-level 1 >&2
+    print_btf_detail --msg "Building 'xml' application failed --> (see ${tmpbuild} for details)" --prefix "${__WARN_PREFIX}" --tab-level 1 --use-color '\033[1;31m' >&2
     return "${RC}"
   fi
 
@@ -138,11 +93,11 @@ build_xmlstarlet()
   RC=$?
   if [ "${RC}" -ne 0 ]
   then
-    print_btf_detail --msg "Building 'xml' application failed --> (see ${tmpbuild} for details)" --prefix "${__WARN_PREFIX}" --tab-level 1 >&2
+    print_btf_detail --msg "Building 'xml' application failed --> (see ${tmpbuild} for details)" --prefix "${__WARN_PREFIX}" --tab-level 1 --use-color '\033[1;31m' >&2
     return "${RC}"
   fi
 
-  print_btf_detail --msg "Building 'xml' application completed --> (see ${tmpbuild} for details)" --prefix "${__INFO_PREFIX}" --tab-level 1 >&2
+  print_btf_detail --msg "Building 'xml' application completed --> (see ${tmpbuild} for details)" --prefix "${__INFO_PREFIX}" --tab-level 1 --use-color '\033[1;32m' >&2
   printf "%s\n" "${tmpbuild}/xmlstar:xml"
   cd "${current_dir}" > /dev/null 2>&1
   return 0
