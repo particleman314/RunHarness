@@ -24,6 +24,9 @@ __additional_paths=
 
 . "./build_prereqs/setup_support.sh"
 
+# Handle the -y option (force installation/non-interactive)
+#   and the -d option for the ShellLibrary directory
+
 # Verify SLCF_SHELL_TOP is defined.  If not, we exit now and request
 #   the user to setup this ENV variable
 
@@ -83,15 +86,19 @@ then
   done
 fi
 
+# Return to where we initiated this script
+cd "${topdir}" >/dev/null 2>&1
+
+[ -f "${SLCF_SHELL_TOP}/.preconfigured_paths.txt" ] && preconfigured_paths+="$( \cat "${SLCF_SHELL_TOP}/.preconfigured_paths.txt" | \tr '\n' '|' )"
+preconfigured_paths="$( printf "%s\n" ${preconfigured_paths} | \sort | \uniq | \tr '|' '\n' )"
+
+printf "%s\n" ${preconfigured_paths} > "${SLCF_SHELL_TOP}/.preconfigured_paths.txt"
+
 if [ "${__SETUP_COMPLETE_SUCCESSFULLY}" -lt 1 ]
 then
-  print_btf_detail --msg "Unable to complete full setup for use of RunHarness." --prefix "${__ERROR_PREFIX}"
+  print_btf_detail --msg "Unable to complete full setup for use of RunHarness." --prefix "${__ERROR_PREFIX}" --use-color '\033[1;31m'
   exit 1
 else
-  [ -f "${SLCF_SHELL_TOP}/.preconfigured_paths.txt" ] && preconfigured_paths+="$( \cat "${SLCF_SHELL_TOP}/.preconfigured_paths.txt" | \tr '\n' '|' )"
-  preconfigured_paths="$( printf "%s\n" ${preconfigured_paths} | \sort | \uniq | \tr '|' '\n' )"
-
-  printf "%s\n" ${preconfigured_paths} > "${SLCF_SHELL_TOP}/.preconfigured_paths.txt"
   print_btf_detail --msg "Setup completed.  RunHarness and SLCF information determined." --prefix "${__INFO_PREFIX}"
 fi
 

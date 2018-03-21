@@ -16,20 +16,66 @@
 
 __SETUP_COMPLETE_SUCCESSFULLY=1
 
-__INFO_PREFIX="[ INFO  ]"
-__WARN_PREFIX="[ WARN  ]"
+__INFO_PREFIX='[ INFO  ]'
+__WARN_PREFIX='[ WARN  ]'
 __ERROR_PREFIX='[ ERROR ]'
 
 DOWNLOAD_FILE='download.txt'
 CONFIGURE_FILE='configure.txt'
 BUILD_FILE='build.txt'
 
-__download_curl()
+FORCE_INSTALL="${FORCE_INSTALL:-0}"
+
+topdir="$( \pwd -L )"
+
+__decompose_download()
+{
+  typeset absfilename="$1"
+  typeset outputdir="$2"
+  typeset RC=0
+
+  typeset try_again=1
+  typeset retries=4
+  while [ "${try_again}" -eq 1 ] && [ "${retries}" -gt 0 ]
+  do
+    typeset filextension="${absfilename##*.}"
+    if [ -z "${filextension}" ] || [ "${absfilename}" == "${filextension}" ]
+    then
+      try_again=0
+      continue
+    fi
+
+    case "${filextension}" in
+    'zip'   )  [ "$( find_application 'unzip' 1 )" -eq 0 ] && return 1;
+               \unzip "${absfilename}" >> "${outputdir}/${DOWNLOAD_FILE}" 2>&1; RC=$?;;
+
+    'gz'    )  [ "$( find_application 'gunzip' 1 )" -eq 0 ] && return 1;
+               \gunzip "${absfilename}" >> "${outputdir}/${DOWNLOAD_FILE}" 2>&1; RC=$?;;
+
+    'tar'   )  [ "$( find_application 'tar' 1 )" -eq 0 ] && return 1;
+               \tar xvf "${absfilename}" >> "${outputdir}/${DOWNLOAD_FILE}" 2>&1; RC=$?;;
+
+    'bz2'   )  [ "$( find_application 'bunzip' 1 )" -eq 0 ] && return 1;
+               \bunzip "${absfilename}" >> "${outputdir}/${DOWNLOAD_FILE}" 2>&1; RC=$?;;
+
+    *       )  try_again=0; continue;;
+    esac
+
+    absfilename="${absfilename%.*}"
+    retries=$(( retries - 1 ))
+  done
+  return "${RC}"
+}
+
+__download_remote()
 {
   typeset tmpbuild="$1"
   typeset application="$2"
-  typeset curl_addr="$3"
+  typeset inetaddr="$3"
   typeset deposition="$4"
+
+  [ -z "${download_application}" ] && download_application='<none>'
+  [ -d "${tmpbuild}/${application}" ] && \rm -rf "${tmpbuild}/${application}"
 
   typeset RC=1
 
@@ -43,14 +89,33 @@ __download_curl()
 
   cd "${tmpbuild}" >/dev/null 2>&1
 
-  [ -d "${tmpbuild}/${application}" ] && \rm -rf "${tmpbuild}/${application}"
-  \curl -s -X GET "${curl_addr}"
-  RC=$?
+  typeset outfile="${tmpbuild}/$( \basename "${inetaddr}" )"
+
+  print_btf_detail --msg "Downloading '${application}' from address ( ${inetaddr} )" --prefix "${__INFO_PREFIX}" --tab-level 2 >&2
+  \date > "${tmpbuild}/${DOWNLOAD_FILE}"
+
+  case "${download_application}" in 
+  'wget'  ) 
+            __record_command_2_file "${tmpbuild}/${DOWNLOAD_FILE}" "wget \"${inetaddr}\" -O \"${outfile}\""
+            \wget "${inetaddr}" -O "${outfile}" >> "${tmpbuild}/${DOWNLOAD_FILE}" 2>&1;
+            RC=$?;;
+  'curl'  )
+            __record_command_2_file "${tmpbuild}/${DOWNLOAD_FILE}" "curl -s -X GET \"${inetaddr}\" -o \"${outfile}\""
+            \curl -s -X GET "${inetaddr}" -o "${outfile}" >> "${tmpbuild}/${DOWNLOAD_FILE}" 2>&1;
+            RC=$?;;
+  *       ) RC=1;;
+  esac
+
   if [ "${RC}" -ne 0 ]
   then
     cd "${current_dir}" > /dev/null 2>&1
     return "${RC}"
-  fi  
+  fi
+
+  __decompose_download "${outfile}" "${tmpbuild}"
+  RC=$?
+  [ "${RC}" -ne 0 ] && cd "${current_dir}" > /dev/null 2>&1
+  return "${RC}"
 }
 
 # __download_cvs()
@@ -114,9 +179,9 @@ __download_git()
   if [ "${needs_git_update}" -eq 1 ]
   then
     print_btf_detail --msg "Updating '${application}' src code ( ${VCS_repo} )" --prefix "${__INFO_PREFIX}" --tab-level 2 >&2
-    \date > "../${DOWNLOAD_FILE}"
-    __record_command_2_file "../${DOWNLOAD_FILE}" "git pull"
-    \git pull >> "../${DOWNLOAD_FILE}" 2>&1
+    \date > "${tmpbuild}/${DOWNLOAD_FILE}"
+    __record_command_2_file "${tmpbuild}/${DOWNLOAD_FILE}" "git pull"
+    \git pull >> "${tmpbuild}/${DOWNLOAD_FILE}" 2>&1
     RC=$?
     if [ "${RC}" -ne 0 ]
     then
@@ -133,16 +198,17 @@ __make_with_args()
   typeset tmpbuild="$1"
   typeset application="$2"
   typeset ignore_failure="${3:-0}"
-  shift 3
+  typeset subdir="$4"
+  shift 4
 
   typeset markargs="$@"
   print_btf_detail --msg "Compiling/Linking '${application}' " --prefix "${__INFO_PREFIX}" --tab-level 2 >&2
   typeset RC=1
 
-  cd "${tmpbuild}" >/dev/null 2>&1
-  \date > "../${BUILD_FILE}"
-  __record_command_2_file "../${BUILD_FILE}" 'make'
-  \make >> "../${BUILD_FILE}" 2>&1
+  cd "${tmpbuild}/${subdir}" >/dev/null 2>&1
+  \date > "${tmpbuild}/${BUILD_FILE}"
+  __record_command_2_file "${tmpbuild}/${BUILD_FILE}" 'make'
+  \make >> "${tmpbuild}/${BUILD_FILE}" 2>&1
   RC=$?
 
   if [ "${ignore_failure}" -eq 0 ]
@@ -156,7 +222,7 @@ __make_with_args()
     fi
   fi
 
-  cd - >/dev/null 2>&1
+  cd "${tmpbuild}" >/dev/null 2>&1
 
   if [ "${ignore_failure}" -eq 0 ]
   then
@@ -184,6 +250,8 @@ __record_command_2_file()
 find_application()
 {
   typeset application="$1"
+  typeset passthru="$2"
+
   application="$( printf "%s\n" "${application}" | \tr -s ' ' | \tr -d ' ' )"
   if [ -z "${application}" ]
   then
@@ -194,7 +262,7 @@ find_application()
   typeset suppress="${1:-0}"
 
   [ "${suppress}" -eq 0 ] && print_btf_detail --msg "Looking for <${application}>..." --prefix "${__INFO_PREFIX}" >&2
-  
+
   \which "${application}" >/dev/null 2>&1
   if [ $? -eq 0 ]
   then
@@ -214,9 +282,18 @@ handle_application()
   [ -z "$1" ] && return 1
 
   typeset found_app="$( find_application "$1" )"
+  [ -n "${FORCE_APPLICATION_BUILD}" ] && [ "${FORCE_APPLICATION_BUILD}" -eq 1 ] && found_app=0
+
   if [ "${found_app}" -eq 0 ]
   then
-    buildapp=$( request_build_support_application "${application}" )
+    if [ "${FORCE_INSTALL}" -eq 1 ]
+    then
+      printf "%s\n" "No '${application}' program found..." >&2
+      printf "%s\n" "Building'${application}'" >&2
+      buildapp='YES'
+    else
+      buildapp=$( request_build_support_application "${application}" )
+    fi
 
     if [ "${buildapp}" == 'YES' ]
     then

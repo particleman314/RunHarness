@@ -21,10 +21,12 @@ download_xmlstarlet()
 {
   __download_git "$1" 'xml' "${XML_GIT_REPO}"
   typeset RC=$?
+  __record_command_2_file "${tmpbuild}/${DOWNLOAD_FILE}" "Return Code : ${RC}"
   if [ "${RC}" -ne 0 ]
   then
     __download_git "$1" 'xml' "${XML_SOURCEFORGE_REPO}"
     RC=$?
+    __record_command_2_file "${tmpbuild}/${DOWNLOAD_FILE}" "Return Code : ${RC}"
   fi
   return "${RC}"
 }
@@ -35,21 +37,23 @@ configure_xmlstarlet()
   typeset tmpbuild="$1"
   typeset RC=1
 
-  cd xmlstar >/dev/null 2>&1
+  cd 'xmlstar' >/dev/null 2>&1
 
-  \date > "../${CONFIGURE_FILE}"
-  __record_command_2_file "../${CONFIGURE_FILE}" "autoreconf -sif"
-  \autoreconf -sif >> "../${CONFIGURE_FILE}" 2>&1 >> "../${CONFIGURE_FILE}" 2>&1
+  \date > "${tmpbuild}/${CONFIGURE_FILE}"
+  __record_command_2_file "${tmpbuild}/${CONFIGURE_FILE}" "autoreconf -sif"
+  \autoreconf -sif >> "${tmpbuild}/${CONFIGURE_FILE}" 2>&1 >> "../${CONFIGURE_FILE}" 2>&1
   RC=$?
+  __record_command_2_file "${tmpbuild}/${CONFIGURE_FILE}" "Return Code : ${RC}"
   if [ "${RC}" -ne 0 ]
   then
     cd "${current_dir}" > /dev/null 2>&1
     return "${RC}"
   fi
 
-  __record_command_2_file "../${CONFIGURE_FILE}" './configure'
-  ./configure >> "../${CONFIGURE_FILE}" 2>&1
+  __record_command_2_file "${tmpbuild}/${CONFIGURE_FILE}" './configure'
+  ./configure >> "${tmpbuild}/${CONFIGURE_FILE}" 2>&1
   RC=$?
+  __record_command_2_file "${tmpbuild}/${CONFIGURE_FILE}" "Return Code : ${RC}"
   if [ "${RC}" -ne 0 ]
   then
     cd "${current_dir}" > /dev/null 2>&1
@@ -62,8 +66,9 @@ configure_xmlstarlet()
 
 make_xmlstarlet()
 {
-  __make_with_args "$1/xmlstar" "xml" 1
+  __make_with_args "$1/xmlstar" 'xml' 1
   typeset RC=$?
+  __record_command_2_file "${tmpbuild}/${BUILD_FILE}" "Return Code : ${RC}"
   return "${RC}"
 }
 
