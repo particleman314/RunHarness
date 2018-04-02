@@ -267,7 +267,7 @@ find_application()
   if [ $? -eq 0 ]
   then
     printf "%d\n" 1
-    [ "${suppress}" -eq 0 ] && print_btf_detail --msg 'Found' --tab-level 1 --prefix "${__INFO_PREFIX}" --use-color '\033[1;32m' >&2
+    [ "${suppress}" -eq 0 ] && print_btf_detail --msg 'Found' --tab-level 1 --prefix "${__INFO_PREFIX}" --use-color '\033[1;32m' --newline-count 1 >&2
   else
     [ "${suppress}" -eq 0 ] && print_btf_detail --msg 'Requested' --tab-level 1 --prefix "${__WARN_PREFIX}" --use-color '\033[1;33m' --newline-count 2 >&2
     printf "%s\n" 0
@@ -288,8 +288,7 @@ handle_application()
   then
     if [ "${FORCE_INSTALL}" -eq 1 ]
     then
-      printf "%s\n" "No '${application}' program found..." >&2
-      printf "%s\n" "Building'${application}'" >&2
+      printf "%s\n\n" "Building '${application}' forced." >&2
       buildapp='YES'
     else
       buildapp=$( request_build_support_application "${application}" )

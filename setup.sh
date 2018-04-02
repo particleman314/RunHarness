@@ -17,7 +17,7 @@
 # Add necessary support programs to this list and then add a handler
 #   to the build_prereqs directory for support
 
-__need_app_builds='jq sqlite3 xml'
+__need_app_builds='python jq sqlite3 xml'
 __additional_paths=
 
 # Import support functionality
